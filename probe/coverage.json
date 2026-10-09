@@ -1,0 +1,73 @@
+{
+ "window": [
+  -115.52,
+  40.555,
+  -115.33,
+  40.715
+ ],
+ "box_m": 200.0,
+ "projects": [
+  {
+   "name": "NV_EastCentral_5_D21",
+   "points": 232106077757,
+   "cover": 0.947,
+   "srs": "3857"
+  },
+  {
+   "name": "USGS_LPC_NV_UpperHumboldt_2016_LAS_2018",
+   "points": 32275504187,
+   "cover": 0.601,
+   "srs": "3857"
+  }
+ ],
+ "checkpoints": {
+  "Lamoille Canyon mouth": {
+   "lat": 40.69,
+   "lon": -115.47,
+   "ground": {
+    "NV_EastCentral_5_D21": 0,
+    "USGS_LPC_NV_UpperHumboldt_2016_LAS_2018": 125099
+   }
+  },
+  "Mid canyon (Thomas Canyon)": {
+   "lat": 40.655,
+   "lon": -115.425,
+   "ground": {
+    "NV_EastCentral_5_D21": 151639,
+    "USGS_LPC_NV_UpperHumboldt_2016_LAS_2018": 56481
+   }
+  },
+  "Roads End trailhead": {
+   "lat": 40.612,
+   "lon": -115.377,
+   "ground": {
+    "NV_EastCentral_5_D21": 260502,
+    "USGS_LPC_NV_UpperHumboldt_2016_LAS_2018": 122214
+   }
+  },
+  "Lamoille Lake": {
+   "lat": 40.598,
+   "lon": -115.383,
+   "ground": {
+    "NV_EastCentral_5_D21": 187052,
+    "USGS_LPC_NV_UpperHumboldt_2016_LAS_2018": 125882
+   }
+  },
+  "Liberty Lake": {
+   "lat": 40.58,
+   "lon": -115.395,
+   "ground": {
+    "NV_EastCentral_5_D21": 173933,
+    "USGS_LPC_NV_UpperHumboldt_2016_LAS_2018": 0
+   }
+  },
+  "Crest south of Liberty": {
+   "lat": 40.565,
+   "lon": -115.4,
+   "ground": {
+    "NV_EastCentral_5_D21": 274389,
+    "USGS_LPC_NV_UpperHumboldt_2016_LAS_2018": 0
+   }
+  }
+ }
+}
