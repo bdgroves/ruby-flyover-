@@ -1,0 +1,181 @@
+name: Render
+
+# Renders with forge3d on GitHub's CPUs (Mesa's software Vulkan under a virtual
+# display), reading the prepared data from the `flyover-data` branch.
+#
+#   mode stills   a few frames at the times in `stills`, pushed to the `stills` branch
+#   mode flyover  the whole flight, split across `chunks` parallel jobs as numbered
+#                 frames, joined into the video: a 1080p and a 720p MP4 (both under
+#                 GitHub's 100 MB file limit) pushed to the `video` branch, and the
+#                 full-quality master kept as the `flyover` artifact
+#
+# If some pieces fail, run again with the failed run's ID as reuse_run: finished
+# frames are kept and only the missing ones are rendered.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "stills or flyover"
+        default: "stills"
+      stills:
+        description: "Seconds into the flight, for stills"
+        default: "5,30,60,95,112,125,136"
+      chunks:
+        description: "Parallel render jobs (flyover)"
+        default: "40"
+      size:
+        description: "Frame size"
+        default: "1920x1080"
+      extra:
+        description: "Extra render.py flags (e.g. --forge-sky)"
+        default: ""
+      reuse_run:
+        description: "Run ID whose finished frames to keep (flyover, optional)"
+        default: ""
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  FORGE3D: "forge3d==1.42.0"
+  APT: mesa-vulkan-drivers libvulkan1 xvfb libx11-xcb1 libxkbcommon-x11-0 libxkbcommon0 libxcursor1 libxi6 libxrandr2 libxcb-xkb1 libxcb-randr0 libxcb-shape0 libxcb-xfixes0 libwayland-client0 libegl1 fonts-dejavu-core
+
+jobs:
+  stills:
+    if: ${{ inputs.mode == 'stills' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - name: Prepared data
+        run: git fetch -q --depth 1 origin flyover-data && mkdir -p data && git archive FETCH_HEAD | tar -x -C data
+      - name: Software Vulkan + virtual display
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq $APT >/dev/null
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -q "$FORGE3D" rasterio numpy scipy pillow
+      - name: Stills
+        env: {XDG_RUNTIME_DIR: /tmp}
+        run: |
+          set -o pipefail
+          cd scripts
+          xvfb-run -a -s "-screen 0 1920x1080x24" python render.py --stills "${{ inputs.stills }}" \
+            --size ${{ inputs.size }} --lite ${{ inputs.extra }} 2>&1 | tee ../render.log
+          grep -E "Sun:|frames,|lowest" ../render.log | sed 's/^/::notice::/' || true
+      - name: Push to the stills branch
+        if: always()
+        env: {GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        run: |
+          mkdir -p /tmp/s && cd /tmp/s && git init -q -b stills
+          python3 -c "
+          from PIL import Image; from pathlib import Path
+          for p in sorted(Path('$GITHUB_WORKSPACE/out/stills').glob('*.png')):
+              Image.open(p).convert('RGB').save(p.with_suffix('.jpg').name, quality=90)
+          " || true
+          cp "$GITHUB_WORKSPACE/render.log" . 2>/dev/null || true
+          cp "$GITHUB_WORKSPACE/out/viewer.log" . 2>/dev/null || true
+          git config user.name "ruby-flyover bot"; git config user.email "actions@github.com"
+          git add -A && git commit -q -m "stills (${GITHUB_SHA::7}, run ${GITHUB_RUN_ID})"
+          git push -f -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" stills
+
+  plan:
+    if: ${{ inputs.mode == 'flyover' }}
+    runs-on: ubuntu-latest
+    outputs:
+      chunks: ${{ steps.c.outputs.list }}
+    steps:
+      - id: c
+        run: echo "list=$(python3 -c "print(list(range(int('${{ inputs.chunks }}'))))")" >> "$GITHUB_OUTPUT"
+
+  frames:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: ${{ fromJSON(needs.plan.outputs.chunks) }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Prepared data
+        run: git fetch -q --depth 1 origin flyover-data && mkdir -p data && git archive FETCH_HEAD | tar -x -C data
+      - name: Frames already rendered in an earlier run
+        if: ${{ inputs.reuse_run != '' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: frames-${{ matrix.chunk }}
+          path: out/frames
+          run-id: ${{ inputs.reuse_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Software Vulkan + virtual display
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq $APT >/dev/null
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -q "$FORGE3D" rasterio numpy scipy pillow
+      - name: Render this piece
+        env: {XDG_RUNTIME_DIR: /tmp}
+        run: |
+          set -o pipefail
+          cd scripts
+          for attempt in 1 2 3; do
+            xvfb-run -a -s "-screen 0 1920x1080x24" python render.py --size ${{ inputs.size }} --lite ${{ inputs.extra }} \
+              --frames-dir ../out/frames --chunk ${{ matrix.chunk }} --chunks ${{ inputs.chunks }} 2>&1 | tee -a ../render.log && exit 0
+            echo "attempt $attempt failed; retrying in $((attempt * 30)) s"; sleep $((attempt * 30))
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frames-${{ matrix.chunk }}
+          path: out/frames/frame_*.jpg
+          retention-days: 7
+          compression-level: 0
+
+  video:
+    needs: frames
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: frames-*
+          path: out/frames
+          merge-multiple: true
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -q rasterio numpy scipy pillow "$FORGE3D"
+      - name: Join the frames
+        run: |
+          cd scripts && python render.py --encode ../out/frames --out ../out/ruby_lamoille_flyover.mp4
+      - name: Web copies (1080p and 720p) and a poster
+        run: |
+          cd out
+          f=ruby_lamoille_flyover.mp4
+          ffmpeg -y -loglevel error -i $f -c:v libx264 -preset slow -crf 25 -pix_fmt yuv420p -movflags +faststart -an lamoille-flyover-1080.mp4
+          ffmpeg -y -loglevel error -i $f -vf scale=1280:720 -c:v libx264 -preset slow -crf 26 -pix_fmt yuv420p -movflags +faststart -an lamoille-flyover.mp4
+          for v in lamoille-flyover-1080.mp4 lamoille-flyover.mp4; do
+            mb=$(du -m $v | cut -f1); echo "::notice::$v ${mb} MB"
+            crf=26; while [ "$mb" -ge 95 ]; do crf=$((crf + 2))
+              ffmpeg -y -loglevel error -i $f $( [ $v = lamoille-flyover.mp4 ] && echo -vf scale=1280:720 ) \
+                -c:v libx264 -preset slow -crf $crf -pix_fmt yuv420p -movflags +faststart -an $v
+              mb=$(du -m $v | cut -f1); echo "::notice::$v re-encoded at CRF $crf: ${mb} MB"; done
+          done
+          ffmpeg -y -loglevel error -ss 40 -i $f -frames:v 1 -q:v 3 lamoille-flyover-poster.jpg
+      - name: Push to the video branch
+        env: {GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
+        run: |
+          mkdir -p /tmp/v && cd /tmp/v && git init -q -b video
+          cp "$GITHUB_WORKSPACE"/out/lamoille-flyover*.mp4 "$GITHUB_WORKSPACE"/out/lamoille-flyover-poster.jpg .
+          git config user.name "ruby-flyover bot"; git config user.email "actions@github.com"
+          git add -A && git commit -q -m "video (${GITHUB_SHA::7}, run ${GITHUB_RUN_ID})"
+          git push -f -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" video
+          ls -la
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flyover
+          path: out/ruby_lamoille_flyover.mp4
+          retention-days: 30
