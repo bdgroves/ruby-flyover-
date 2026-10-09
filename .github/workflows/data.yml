@@ -1,0 +1,79 @@
+name: Flyover data
+
+# Lidar tiles -> bare-earth DTM, NAIP texture and canyon centreline, published to the
+# `flyover-data` branch for rendering on the laptop with f3d (see README).
+#
+# The tiles are fetched by 8 runners in parallel and kept as artifacts for 30 days.
+# To redo only the assembly (texture, shading, centreline), run again with the
+# earlier run's ID as reuse_run: the lidar isn't downloaded again.
+on:
+  workflow_dispatch:
+    inputs:
+      reuse_run:
+        description: "Run ID whose lidar tiles to reuse (blank: fetch fresh)"
+        default: ""
+      geom_res:
+        description: "Terrain grid for the viewer, metres"
+        default: "4"
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  tiles:
+    if: ${{ inputs.reuse_run == '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: prefix-dev/setup-pixi@v0.9.0
+        with: {cache: false, locked: false}
+      - name: Lidar tiles (shard ${{ matrix.shard }})
+        run: pixi run python scripts/fetch_tiles.py --shard ${{ matrix.shard }} --shards 8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tiles-${{ matrix.shard }}
+          path: data/tiles/*.tif
+          retention-days: 30
+          compression-level: 0
+
+  assemble:
+    needs: tiles
+    if: ${{ always() && (needs.tiles.result == 'success' || inputs.reuse_run != '') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      RUBY_GEOM_RES: ${{ inputs.geom_res }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: prefix-dev/setup-pixi@v0.9.0
+        with: {cache: false, locked: false}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: tiles-*
+          merge-multiple: true
+          path: data/tiles
+          run-id: ${{ inputs.reuse_run || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Assemble
+        run: |
+          ls data/tiles | wc -l
+          pixi run python scripts/assemble.py | tee assemble.log
+          grep '^= ' assemble.log | sed 's/^= /::notice::/' || true
+      - name: Publish to the flyover-data branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/f && cd /tmp/f
+          git init -q -b flyover-data
+          cp "$GITHUB_WORKSPACE"/data/{dtm.tif,place.json,centerline.json,quicklook.png} .
+          cp "$GITHUB_WORKSPACE"/data/texture_*.jpg .
+          git config user.name "ruby-flyover bot"; git config user.email "actions@github.com"
+          git add -A && git commit -q -m "flyover data (${GITHUB_SHA::7}, run ${GITHUB_RUN_ID})"
+          git push -f -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" flyover-data
+          ls -la
