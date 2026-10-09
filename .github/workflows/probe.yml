@@ -1,0 +1,28 @@
+name: Lidar coverage probe
+
+# Which 3DEP lidar covers Lamoille Canyon, and how dense the ground returns are
+# along the planned flight. Findings come back as annotations (lines starting
+# "= ") and are committed to probe/coverage.json.
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: prefix-dev/setup-pixi@v0.9.0
+        with: {cache: false, locked: false}
+      - name: Probe
+        run: |
+          pixi run probe | tee probe.log
+          grep '^= ' probe.log | sed 's/^= /::notice::/' || true
+      - name: Commit the findings
+        run: |
+          git config user.name "ruby-flyover bot"; git config user.email "actions@github.com"
+          git add probe/coverage.json
+          git commit -m "probe: lidar coverage along the flight" || exit 0
+          git pull --rebase -q && git push -q
