@@ -29,7 +29,9 @@ WINDOW = (626000, 4488000, 642000, 4510000)    # left, bottom, right, top
 CORE = (626000, 4490000, 640000, 4508000)      # gridded at 1 m
 CORE_RES = 1.0
 MARGIN_RES = 4.0
-GEOM_RES = float(os.environ.get("RUBY_GEOM_RES", "2"))
+# 2.5 m: forge3d's TIFF reader refuses terrain over about 256 MB (8000 x 11000 float32
+# at 2 m is 352 MB); at 2.5 m it's 6400 x 8800, 225 MB.
+GEOM_RES = float(os.environ.get("RUBY_GEOM_RES", "2.5"))
 DTM_STRIPS = 4
 TEX_RES = 2.0
 TEX_STRIPS = 4

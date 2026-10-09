@@ -14,7 +14,7 @@ on:
         default: ""
       geom_res:
         description: "Terrain grid for the viewer, metres"
-        default: "2"
+        default: "2.5"
 
 permissions:
   contents: write

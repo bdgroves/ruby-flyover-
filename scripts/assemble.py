@@ -231,8 +231,15 @@ def main() -> int:
         reproject(zm, g, src_transform=from_origin(config.LEFT, config.TOP, config.MARGIN_RES, config.MARGIN_RES),
                   src_crs=config.CRS, dst_transform=from_origin(config.LEFT, config.TOP, res_g, res_g),
                   dst_crs=config.CRS, resampling=Resampling.bilinear)
-        kg = int(round(res_g / config.CORE_RES))
-        cg = block(zc, kg) if kg > 1 else zc
+        kg = res_g / config.CORE_RES
+        if abs(kg - round(kg)) < 1e-6:
+            cg = block(zc, int(round(kg))) if kg > 1 else zc
+        else:                                            # e.g. 2.5 m: average the 1 m cells
+            cw, chh = int((cr - cl) / res_g), int((ct - cb) / res_g)
+            cg = np.zeros((chh, cw), np.float32)
+            reproject(zc, cg, src_transform=from_origin(cl, ct, config.CORE_RES, config.CORE_RES),
+                      src_crs=config.CRS, dst_transform=from_origin(cl, ct, res_g, res_g), dst_crs=config.CRS,
+                      resampling=Resampling.average)
         r0, c0 = int((config.TOP - ct) / res_g), int((cl - config.LEFT) / res_g)
         g[r0:r0 + cg.shape[0], c0:c0 + cg.shape[1]] = cg
         del cg
