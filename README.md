@@ -2,7 +2,7 @@
 
 A forge3d flight up **Lamoille Canyon** in the Ruby Mountains of northeastern Nevada. It opens high over the Lamoille valley with the whole canyon laid out ahead, drops in at the mouth, and runs low and fast up the glacial trough past the hanging valleys. It climbs the headwall to Lamoille Lake, crosses Liberty Pass with Liberty Lake below, and ends by turning to look back down the canyon into the evening sun. That's the way the Ruby Crest Trail climbs out of the canyon.
 
-It's flown on USGS 3DEP bare-earth lidar at true scale, with the USDA NAIP aerial photo on top, under a blue sky in late-afternoon August light. It runs about two minutes. A longer flight along the whole crest can come later.
+It's flown on USGS 3DEP bare-earth lidar at true scale, with the USDA NAIP aerial photo on top, under a blue sky in late-afternoon August light. It runs about 2 minutes 20 seconds. A longer flight along the whole crest can come later.
 
 ## The lidar
 
@@ -51,5 +51,6 @@ f3d scripts\render.py --encode out\frames                             # -> out\r
 
 ## Settings worth knowing
 
-- **Sun:** August 1, 2026 at 6:15 pm PDT (Elko County keeps Pacific time), low in the west-north-west, about 35° off the canyon's axis. It lights the north-east wall and leaves the south-west wall in shade. It's behind the camera going up the canyon and in its face for the last look back.
+- **Sun:** August 1, 2026 at 6:15 pm PDT (Elko County keeps Pacific time), just north of west (azimuth 279°) and about 18° up, some 20° off the line of the lower canyon. It lights the north-east wall and leaves the south-west wall in shade, and it's behind the camera going up the canyon.
+- **The flight** follows the canyon floor at 170–320 m above it, at up to about 240 m/s, then slows over Lamoille Lake and Liberty Pass and pans round (never faster than 23° a second) to look back down the upper canyon. The heading, pitch and distance to the aim are interpolated between keyframes rather than the aim point itself, so turns stay even. Every key view after the opening has a clear line of sight. The opening deliberately looks at the range front, since the canyon only opens up once you're in it.
 - **forge3d's orbit camera** caps its radius quietly. `flight.camera()` keeps the eye and view direction and pulls the target along the line of sight to within 600 m, so the view is the one asked for (the same fix as the Dakar flyover).

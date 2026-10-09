@@ -45,9 +45,9 @@ EXAGGERATION = 1.0
 VIDEO = OUT / "ruby_lamoille_flyover.mp4"
 
 # Late afternoon in high summer: August 1, 2026, 6:15 pm PDT (Elko County keeps
-# Pacific time). The sun is low in the west-north-west, about 35 degrees off the
-# canyon's axis: it lights the north-east wall and leaves the south-west wall in shade,
-# and it's behind the camera going up the canyon and in its face looking back down.
+# Pacific time). The sun is just north of west (azimuth 279, about 18 degrees up), some
+# 20 degrees off the line of the lower canyon: it lights the north-east wall and leaves
+# the south-west wall in shade, and it's behind the camera going up the canyon.
 SUN_UTC = (2026, 8, 2, 1, 15, 0)
 SUN_LATLON = (40.62, -115.42)
 

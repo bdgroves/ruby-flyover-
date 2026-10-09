@@ -34,23 +34,27 @@ import route
 # anything comes within MIN_CLEARANCE.
 LAMOILLE_LAKE = (40.5925, -115.3939)
 LIBERTY_LAKE = (40.5800, -115.3950)
+LIBERTY_PASS = (40.5860, -115.3948)   # approximate: the saddle between the two lakes
 
 KEYS = [
     # 1. From high over the Lamoille valley, the whole canyon laid out to the south-east.
     (("ll", 40.712, -115.500, 650), ("c", 0.40, 0), 160, 50, "Lamoille Canyon from the valley"),
     # 2. In at the mouth, dropping into the glacial trough.
-    (("c", 0.00, 320), ("c", 0.14, 60), 190, 50, "In at the mouth"),
-    (("c", 0.16, 200), ("c", 0.32, 60), 210, 52, "The U-shaped trough"),
+    (("c", 0.00, 320), ("c", 0.14, 60), 210, 50, "In at the mouth"),
+    (("c", 0.16, 200), ("c", 0.32, 60), 240, 52, "The U-shaped trough"),
     # 3. Low and fast up the canyon, the sun behind us lighting the north-east wall.
-    (("c", 0.38, 180), ("c", 0.55, 60), 220, 52, "Up the canyon"),
-    (("c", 0.60, 170), ("c", 0.78, 50), 200, 52, "Past the hanging valleys"),
+    (("c", 0.38, 180), ("c", 0.55, 60), 250, 52, "Up the canyon"),
+    (("c", 0.60, 170), ("c", 0.70, 200), 230, 52, "Past the hanging valleys"),
     # 4. Slowing past Roads End and up the headwall to Lamoille Lake.
-    (("c", 0.80, 170), ("c", 1.00, 0), 140, 50, "Up the headwall"),
-    (("c", 0.97, 130), ("ll", *LIBERTY_LAKE, -40), 80, 50, "Lamoille Lake"),
+    (("c", 0.80, 170), ("c", 1.00, 80), 160, 50, "Up the headwall"),
+    (("c", 0.97, 130), ("ll", *LIBERTY_PASS, 120), 100, 50, "Lamoille Lake"),
     # 5. Over Liberty Pass, and Liberty Lake below.
-    (("ll", 40.5860, -115.3948, 110), ("ll", *LIBERTY_LAKE, -60), 60, 50, "Over Liberty Pass"),
-    # 6. Up and round to look back down the canyon, into the evening sun.
-    (("ll", 40.5770, -115.3990, 300), ("c", 0.45, 0), 35, 50, "Back down Lamoille Canyon"),
+    (("ll", *LIBERTY_PASS, 110), ("ll", *LIBERTY_LAKE, 10), 75, 50, "Over Liberty Pass"),
+    # 6. Climbing over Liberty Lake, swing west along the crest into the low sun...
+    (("ll", 40.5795, -115.3965, 260), ("ll", 40.5780, -115.4250, 0), 50, 50, "West along the crest"),
+    # 7. ...and on round to look back down the upper canyon (the lower canyon is round the bend,
+    #    behind the ridge), with the evening sun off to the left.
+    (("ll", 40.5810, -115.3990, 420), ("c", 0.80, 0), 45, 50, "Back down Lamoille Canyon"),
 ]
 HOLD_S = 4.0
 FPS = 30
@@ -159,8 +163,17 @@ def plan(dem: np.ndarray | None = None, fps: int = FPS) -> Flight:
     t = np.arange(n) / fps
     s = s_of_t(t)
     eye = np.column_stack([np.interp(s, arc, dense[:, j]) for j in range(3)])
-    # where the path has a repeated point (a hold), arc length stalls: hold the eye there
-    aim = np.column_stack([PchipInterpolator(times, aim_k[:, j])(t) for j in range(3)])
+    # The view turns smoothly: heading, pitch and the distance to the aim are interpolated
+    # between keyframes (heading the short way round), rather than the aim point itself,
+    # which would whip the camera round whenever the aim swings past the eye.
+    eye_at_k = np.vstack([eye_k, eye_k[-1]])
+    rel = aim_k - eye_at_k
+    head = np.unwrap(np.arctan2(rel[:, 0], rel[:, 1]))
+    pitch = np.arctan2(rel[:, 2], np.hypot(rel[:, 0], rel[:, 1]))
+    dist = np.log(np.linalg.norm(rel, axis=1))
+    hd, pt, ds = (PchipInterpolator(times, v)(t) for v in (head, pitch, dist))
+    r = np.exp(ds)
+    aim = eye + np.column_stack([r * np.cos(pt) * np.sin(hd), r * np.cos(pt) * np.cos(hd), r * np.sin(pt)])
     fov = PchipInterpolator(times, fov_k)(t)
     speed = np.abs(s_of_t(t, 1))
 
