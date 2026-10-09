@@ -219,6 +219,13 @@ class Towns:
         gap = line[:, 2] - flight.sample(self.dem, line[:, 0], line[:, 1])
         return float(np.clip((gap.min() + 10) / 30, 0, 1))
 
+    @staticmethod
+    def looks_down(eye, pt) -> float:
+        """A lake seen edge-on can't be seen at all: name it only once the camera looks down
+        on it by 3 degrees or more (fully by 6)."""
+        ang = np.degrees(np.arctan2(eye[2] - pt[2], np.hypot(*(eye[:2] - pt[:2]))))
+        return float(np.clip((ang - 3) / 3, 0, 1))
+
     def draw(self, rgb: np.ndarray, eye, aim, fov, t: float) -> np.ndarray:
         from PIL import ImageDraw
         img = Image.fromarray(rgb)
@@ -230,7 +237,7 @@ class Towns:
                 continue
             # names come in as the title goes out, fade with distance, and fade out behind ridges
             fade = float(np.clip((LABEL_MAX_KM - km) / LABEL_FADE_KM, 0, 1) * np.clip((t - TITLE_S + 1.5) / 1.5, 0, 1)
-                         * self.in_sight(eye, pt))
+                         * self.in_sight(eye, pt) * (self.looks_down(eye, pt) if "Lake" in text else 1.0))
             if fade <= 0.05:
                 continue
             col = tuple(int(c * fade + l * (1 - fade)) for c, l in zip(LABEL_RGB, rgb[int(y), int(x)]))
