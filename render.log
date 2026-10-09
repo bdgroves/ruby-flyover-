@@ -1,0 +1,16 @@
+joined 4 terrain strips into dtm.tif: 6400 x 8800
+4485 frames, 149 s at 30 fps
+    0.0 s  Lamoille Canyon from the valley   163 m/s  lens  50    649 m up
+   15.3 s  In at the mouth          204 m/s  lens  50    317 m up
+   27.3 s  The U-shaped trough      234 m/s  lens  52    199 m up
+   42.9 s  Up the canyon            242 m/s  lens  52    183 m up
+   58.8 s  Past the hanging valleys   215 m/s  lens  52    178 m up
+   76.0 s  Up the headwall          157 m/s  lens  50    173 m up
+   98.4 s  Lamoille Lake            103 m/s  lens  50    147 m up
+  114.6 s  Over Liberty Pass         80 m/s  lens  50    168 m up
+  127.0 s  Round Liberty Lake        67 m/s  lens  50    239 m up
+  144.5 s  Liberty Lake from the south     0 m/s  lens  50    319 m up
+  lowest: 95 m above the ground at 101.6 s; path raised by up to 128 m to clear the terrain
+Sun: azimuth 279 deg, 18 deg up
+  frame 1/7  (5.0 s)  ~8 min left  frame 2/7  (30.0 s)  ~5 min left  frame 3/7  (60.0 s)  ~3 min left  frame 4/7  (95.0 s)  ~2 min left  frame 5/7  (115.0 s)  ~2 min left  frame 6/7  (130.0 s)  ~1 min left  frame 7/7  (148.0 s)  ~0 min left
+wrote 7 stills to /home/runner/work/ruby-flyover-/ruby-flyover-/out/stills

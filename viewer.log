@@ -1,0 +1,123 @@
+[viewer-ipc] Creating window 1920x1080
+[viewer-ipc] Window created, waiting for Resumed event
+[viewer-ipc] Received Resumed event
+[viewer-ipc] Initializing Viewer...
+libEGL warning: DRI3 error: Could not get DRI3 device
+libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+FORGE3D_VIEWER_ADAPTER name="llvmpipe (LLVM 20.1.2, 256 bits)" vendor=0x10005 device=0x0000 backend=Vulkan device_type=Cpu driver="llvmpipe" driver_info="Mesa 25.2.8-0ubuntu0.24.04.4 (LLVM 20.1.2)"
+[viewer] lit compute WGSL version 2 compiled
+[viewer-ipc] Viewer initialized successfully
+[XYZZY_TERRAIN] LoadTerrain handler entry, path=/home/runner/work/ruby-flyover-/ruby-flyover-/data/dtm.tif
+[DEBUG LoadTerrain] Staging new terrain_viewer
+[terrain] Height range: 1766.3 to 3471.9 (range: 1705.5)
+[terrain] Loaded 6400x8800 DEM, domain: 1766.3..3471.9, grid=2048x2048
+[terrain] Loaded: /home/runner/work/ruby-flyover-/ruby-flyover-/data/dtm.tif
+[DEBUG LoadTerrain] staged terrain_viewer published
+FORGE3D_VIEWER_READY port=40133
+[viewer-ipc] READY message sent, port=40133
+[viewer-debug] entering render loop (first frame)
+[viewer-debug] render gate: gi=true pipe=true cam=true vb=false z=true bgl=true
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[render] terrain_params: min_h=1766.3, h_range=1705.5, width=16000.0, z_scale=1.00
+[render] Expected Y range: 0 to 1705.5
+[render] Camera target: (634000.0, 852.8, -4499000.0)
+[overlay] LoadOverlay command received: name='naip_0' path='/home/runner/work/ruby-flyover-/ruby-flyover-/data/texture_0.jpg'
+[overlay] terrain_viewer exists, calling add_overlay_image...
+[overlay] Added layer 'naip_0' (id=0, 8000x2750)
+[overlay] Composite non-zero alpha pixels: 14080000 / 56320000
+[overlay] Built composite texture 6400x8800 from 1 visible layers
+[overlay] Loaded 'naip_0' from /home/runner/work/ruby-flyover-/ruby-flyover-/data/texture_0.jpg (id=0)
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[overlay] preserve_colors=false
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[overlay] LoadOverlay command received: name='naip_1' path='/home/runner/work/ruby-flyover-/ruby-flyover-/data/texture_1.jpg'
+[overlay] terrain_viewer exists, calling add_overlay_image...
+[overlay] Added layer 'naip_1' (id=1, 8000x2750)
+[overlay] Composite non-zero alpha pixels: 28160000 / 56320000
+[overlay] Built composite texture 6400x8800 from 2 visible layers
+[overlay] Loaded 'naip_1' from /home/runner/work/ruby-flyover-/ruby-flyover-/data/texture_1.jpg (id=1)
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[overlay] preserve_colors=false
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[overlay] LoadOverlay command received: name='naip_2' path='/home/runner/work/ruby-flyover-/ruby-flyover-/data/texture_2.jpg'
+[overlay] terrain_viewer exists, calling add_overlay_image...
+[overlay] Added layer 'naip_2' (id=2, 8000x2750)
+[overlay] Composite non-zero alpha pixels: 42240000 / 56320000
+[overlay] Built composite texture 6400x8800 from 3 visible layers
+[overlay] Loaded 'naip_2' from /home/runner/work/ruby-flyover-/ruby-flyover-/data/texture_2.jpg (id=2)
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[overlay] preserve_colors=false
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[overlay] LoadOverlay command received: name='naip_3' path='/home/runner/work/ruby-flyover-/ruby-flyover-/data/texture_3.jpg'
+[overlay] terrain_viewer exists, calling add_overlay_image...
+[overlay] Added layer 'naip_3' (id=3, 8000x2750)
+[overlay] Composite non-zero alpha pixels: 56320000 / 56320000
+[overlay] Built composite texture 6400x8800 from 4 visible layers
+[overlay] Loaded 'naip_3' from /home/runner/work/ruby-flyover-/ruby-flyover-/data/texture_3.jpg (id=3)
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[overlay] preserve_colors=false
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Sun: az=278.6° el=17.6° int=0.70
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain_scene] CSM renderer created, shadow_map_size=2048, has_moment_maps=false
+[terrain_scene] Shadows initialized (moment_maps=false)
+[terrain_pbr] updated: PBR: ON | shadow=none res=2048 | IBL=1.00 rot=0.0 exp=0.90 | msaa=4 normal=1.00 | height_ao=ON dirs=6 steps=16 | sun_vis=soft samples=4 steps=24 | tonemap=aces
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] PBR pipeline initialized
+[terrain] Height AO compute pipeline initialized (3200x4400)
+[terrain] Sun visibility compute pipeline initialized (3200x4400)
+[terrain_scene] Shadow depth pipeline initialized (4 cascades)
+[csm_uniforms] cascade_count=0, technique=1, shadow_map_size=2048
+[terrain] phi=135.0 theta=45.0 radius=33000 fov=55.0 target=(634000.0, 852.8, -4499000.0) | sun_az=278.6 sun_el=17.6 intensity=0.70 ambient=0.38 source=manual_angles | zscale=1.00 shadow=0.50 | origin=(626000.000000,-4510000.000000) span=(16000.000000,22000.000000) fallback=false crs=Some({"name": "EPSG", "code": "26911"}) transform=Some((2.5, 0.0, 626000.0, 0.0, -2.5, 4510000.0))
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=-114.4° theta=86.4° r=600.0 fov=50.0° target=Some([627685.011127319, 598.2940250320206, -4506897.753626568])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=-114.4° theta=86.4° r=600.0 fov=50.0° target=Some([627685.011127319, 598.2940250320206, -4506897.753626568])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/ruby-flyover-/ruby-flyover-/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=-152.0° theta=90.2° r=600.0 fov=52.0° target=Some([630657.6195336864, 485.2812039936757, -4502997.177999874])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/ruby-flyover-/ruby-flyover-/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=-129.7° theta=93.6° r=600.0 fov=52.0° target=Some([637140.2699711397, 922.3003260248336, -4500068.638056449])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/ruby-flyover-/ruby-flyover-/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=-61.4° theta=102.0° r=600.0 fov=50.0° target=Some([636388.6556572046, 1332.4263153400289, -4495042.772627357])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/ruby-flyover-/ruby-flyover-/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=-93.9° theta=62.3° r=553.1 fov=50.0° target=Some([635880.9300503168, 1334.5005679881597, -4493522.689164004])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/ruby-flyover-/ruby-flyover-/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=18.7° theta=75.0° r=600.0 fov=50.0° target=Some([635939.0437113633, 1356.2831067430357, -4493554.608720933])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/ruby-flyover-/ruby-flyover-/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[terrain] Camera: phi=89.0° theta=77.8° r=600.0 fov=50.0° target=Some([635881.0754557488, 1355.9410204823605, -4493382.55573961])
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=true, terrain_snap_size=Some((1920, 1080))
+[DEBUG render_to_texture ENTRY] 1920x1080
+[DEBUG render_to_texture] overlay_params: enabled=1, opacity=1, blend=0, solid=1
+Saved snapshot to /home/runner/work/ruby-flyover-/ruby-flyover-/out/_frame.png
+[DEBUG main_loop] terrain_viewer path, has_terrain=true, snapshot_request=false, terrain_snap_size=None
