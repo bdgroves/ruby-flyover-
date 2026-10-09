@@ -223,23 +223,34 @@ def main() -> int:
     print(f"= margin at {config.MARGIN_RES:g} m: {np.isfinite(zm).mean():.1%} with ground returns", flush=True)
     zm = fill(zm, config.MARGIN_RES)
 
-    # geometry
+    # geometry: the margin brought to GEOM_RES, and the core straight from the 1 m lidar
     if res_g != config.MARGIN_RES:
         from rasterio.warp import Resampling, reproject
         w, h = int((config.RIGHT - config.LEFT) / res_g), int((config.TOP - config.BOTTOM) / res_g)
         g = np.zeros((h, w), np.float32)
-        reproject(zm, g, src_transform=from_origin(config.LEFT, config.TOP, 4, 4), src_crs=config.CRS,
-                  dst_transform=from_origin(config.LEFT, config.TOP, res_g, res_g), dst_crs=config.CRS,
-                  resampling=Resampling.bilinear)
+        reproject(zm, g, src_transform=from_origin(config.LEFT, config.TOP, config.MARGIN_RES, config.MARGIN_RES),
+                  src_crs=config.CRS, dst_transform=from_origin(config.LEFT, config.TOP, res_g, res_g),
+                  dst_crs=config.CRS, resampling=Resampling.bilinear)
+        kg = int(round(res_g / config.CORE_RES))
+        cg = block(zc, kg) if kg > 1 else zc
+        r0, c0 = int((config.TOP - ct) / res_g), int((cl - config.LEFT) / res_g)
+        g[r0:r0 + cg.shape[0], c0:c0 + cg.shape[1]] = cg
+        del cg
     else:
         g = zm
-    prof = dict(driver="GTiff", width=g.shape[1], height=g.shape[0], count=1, dtype="float32", crs=config.CRS,
-                transform=from_origin(config.LEFT, config.TOP, res_g, res_g), compress="deflate", predictor=3,
-                tiled=True, blockxsize=256, blockysize=256)
-    with rasterio.open(D / "dtm.tif", "w", **prof) as d:
-        d.write(g, 1)
-    print(f"= dtm.tif {g.shape[1]} x {g.shape[0]} at {res_g:g} m, {g.min():.0f}-{g.max():.0f} m, "
-          f"{(D / 'dtm.tif').stat().st_size / 1e6:.0f} MB", flush=True)
+    # Published in north-to-south strips, each well under GitHub's 100 MB file limit;
+    # config.dtm() joins them back into dtm.tif the first time the flight or render runs.
+    rows = g.shape[0]
+    for k_ in range(config.DTM_STRIPS):
+        a_, b_ = rows * k_ // config.DTM_STRIPS, rows * (k_ + 1) // config.DTM_STRIPS
+        prof = dict(driver="GTiff", width=g.shape[1], height=b_ - a_, count=1, dtype="float32", crs=config.CRS,
+                    transform=from_origin(config.LEFT, config.TOP - a_ * res_g, res_g, res_g), compress="deflate",
+                    predictor=3, tiled=True, blockxsize=256, blockysize=256)
+        part = D / f"dtm_{k_}.tif"
+        with rasterio.open(part, "w", **prof) as d:
+            d.write(np.round(g[a_:b_] * 100) / 100, 1)       # centimetres: compresses far better
+        print(f"= {part.name}: {g.shape[1]} x {b_ - a_} at {res_g:g} m, {part.stat().st_size / 1e6:.0f} MB", flush=True)
+    print(f"= terrain {g.shape[1]} x {g.shape[0]} at {res_g:g} m, {g.min():.0f}-{g.max():.0f} m", flush=True)
 
     # shading at 2 m: margin from 4 m (doubled), the core from 1 m (averaged in pairs)
     sh = np.repeat(np.repeat(shading(zm, config.MARGIN_RES), 2, axis=0), 2, axis=1)

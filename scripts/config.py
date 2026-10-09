@@ -29,7 +29,8 @@ WINDOW = (626000, 4488000, 642000, 4510000)    # left, bottom, right, top
 CORE = (626000, 4490000, 640000, 4508000)      # gridded at 1 m
 CORE_RES = 1.0
 MARGIN_RES = 4.0
-GEOM_RES = float(os.environ.get("RUBY_GEOM_RES", "4"))
+GEOM_RES = float(os.environ.get("RUBY_GEOM_RES", "2"))
+DTM_STRIPS = 4
 TEX_RES = 2.0
 TEX_STRIPS = 4
 
@@ -39,7 +40,6 @@ TEX_STRIPS = 4
 PROJECTS = ["NV_EastCentral_5_D21", "USGS_LPC_NV_UpperHumboldt_2016_LAS_2018"]
 
 LEFT, BOTTOM, RIGHT, TOP = WINDOW
-DEM_RES = GEOM_RES
 DEM_X = DATA / "dtm.tif"                       # what the viewer loads (true scale)
 EXAGGERATION = 1.0
 VIDEO = OUT / "ruby_lamoille_flyover.mp4"
@@ -53,6 +53,30 @@ SUN_LATLON = (40.62, -115.42)
 
 _info = DATA / "place.json"
 INFO = json.loads(_info.read_text()) if _info.exists() else {"name": "Lamoille Canyon", "naip_year": None}
+DEM_RES = float(INFO.get("geom_res_m", GEOM_RES))    # the grid the data was actually built at
+
+
+def dtm():
+    """Path of the terrain, joining the published strips (dtm_0.tif, ...) into dtm.tif once."""
+    parts = sorted(DATA.glob("dtm_*.tif"), key=lambda p: int(p.stem.split("_")[1]))
+    if DEM_X.exists() and (not parts or DEM_X.stat().st_mtime >= max(p.stat().st_mtime for p in parts)):
+        return DEM_X
+    if not parts:
+        return DEM_X
+    import numpy as np
+    import rasterio
+    arrays, prof = [], None
+    for p in parts:
+        with rasterio.open(p) as s:
+            arrays.append(s.read(1))
+            prof = prof or s.profile
+    z = np.vstack(arrays)
+    t = rasterio.open(parts[0]).transform
+    prof.update(height=z.shape[0], width=z.shape[1], transform=t, compress="deflate", predictor=3)
+    with rasterio.open(DEM_X, "w", **prof) as d:
+        d.write(z, 1)
+    print(f"joined {len(parts)} terrain strips into {DEM_X.name}: {z.shape[1]} x {z.shape[0]}")
+    return DEM_X
 
 
 def tiles(box=WINDOW):

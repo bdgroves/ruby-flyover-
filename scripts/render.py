@@ -271,6 +271,7 @@ def main() -> int:
     if args.encode:
         return encode(Path(args.encode), Path(args.out) if args.out else config.VIDEO, args.fps)
 
+    config.dtm()
     for p in (config.DEM_X, *(config.graded(t[0]) for t in config.image_tiles())):
         if not p.exists():
             print(f"Missing {p}. Unpack the flyover-data branch into data\\ (see README.md)")

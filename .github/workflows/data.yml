@@ -14,7 +14,7 @@ on:
         default: ""
       geom_res:
         description: "Terrain grid for the viewer, metres"
-        default: "4"
+        default: "2"
 
 permissions:
   contents: write
@@ -71,7 +71,8 @@ jobs:
         run: |
           mkdir -p /tmp/f && cd /tmp/f
           git init -q -b flyover-data
-          cp "$GITHUB_WORKSPACE"/data/{dtm.tif,place.json,centerline.json,quicklook.png} .
+          cp "$GITHUB_WORKSPACE"/data/{place.json,centerline.json,quicklook.png} .
+          cp "$GITHUB_WORKSPACE"/data/dtm_*.tif .
           cp "$GITHUB_WORKSPACE"/data/texture_*.jpg .
           git config user.name "ruby-flyover bot"; git config user.email "actions@github.com"
           git add -A && git commit -q -m "flyover data (${GITHUB_SHA::7}, run ${GITHUB_RUN_ID})"

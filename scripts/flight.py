@@ -294,6 +294,7 @@ def draw_map(f: Flight, dem: np.ndarray, path) -> None:
 def main() -> int:
     import rasterio
     dem = None
+    config.dtm()
     if config.DEM_X.exists():
         with rasterio.open(config.DEM_X) as src:
             dem = src.read(1)
