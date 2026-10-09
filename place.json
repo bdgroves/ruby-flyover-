@@ -1,0 +1,32 @@
+{
+ "name": "Lamoille Canyon",
+ "crs": "EPSG:26911",
+ "bounds": [
+  626000,
+  4488000,
+  642000,
+  4510000
+ ],
+ "core": [
+  626000,
+  4490000,
+  640000,
+  4508000
+ ],
+ "geom_res_m": 2.5,
+ "tex_res_m": 2.0,
+ "elev_m": [
+  1766.322509765625,
+  3471.849609375
+ ],
+ "naip_year": 2022,
+ "lidar": [
+  "NV_EastCentral_5_D21",
+  "USGS_LPC_NV_UpperHumboldt_2016_LAS_2018"
+ ],
+ "ground_returns": 1707517260,
+ "core_coverage": 0.9974,
+ "seam_shift_m": {
+  "USGS_LPC_NV_UpperHumboldt_2016_LAS_2018": 0.15
+ }
+}
