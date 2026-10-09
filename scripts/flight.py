@@ -32,8 +32,8 @@ import route
 # follows the real canyon. Heights above the floor, not the local ground, keep the
 # flight level past side canyons and talus; the clearance check below lifts it if
 # anything comes within MIN_CLEARANCE.
-LAMOILLE_LAKE = (40.5925, -115.3939)
-LIBERTY_LAKE = (40.5800, -115.3950)
+LAMOILLE_LAKE = (40.5928, -115.3945)  # centre of the lake surface in the lidar
+LIBERTY_LAKE = (40.5816, -115.3945)   # centre of the lake surface in the lidar
 LIBERTY_PASS = (40.5860, -115.3948)   # approximate: the saddle between the two lakes
 
 KEYS = [
@@ -50,13 +50,12 @@ KEYS = [
     (("c", 0.97, 130), ("ll", *LIBERTY_PASS, 120), 100, 50, "Lamoille Lake"),
     # 5. Over Liberty Pass, and Liberty Lake below.
     (("ll", *LIBERTY_PASS, 110), ("ll", *LIBERTY_LAKE, 10), 75, 50, "Over Liberty Pass"),
-    # 6. Climbing over Liberty Lake, swing west along the crest into the low sun...
-    (("ll", 40.5795, -115.3965, 260), ("ll", 40.5780, -115.4250, 0), 50, 50, "West along the crest"),
-    # 7. ...and on round to look back down the upper canyon (the lower canyon is round the bend,
-    #    behind the ridge), with the evening sun off to the left.
-    (("ll", 40.5810, -115.3990, 420), ("c", 0.80, 0), 45, 50, "Back down Lamoille Canyon"),
+    # 6. A slow arc round the lake: over its east shore, looking west into the low sun...
+    (("ll", 40.5816, -115.3862, 230), ("ll", *LIBERTY_LAKE, 0), 75, 50, "Round Liberty Lake"),
+    # 7. ...and a last look from the south, across the lake to the pass and the canyon beyond.
+    (("ll", 40.5748, -115.3945, 300), ("ll", *LIBERTY_LAKE, 0), 45, 50, "Liberty Lake from the south"),
 ]
-HOLD_S = 4.0
+HOLD_S = 5.0
 FPS = 30
 MIN_CLEARANCE = 70.0           # metres above the highest ground within LOOK_RADIUS of the eye
 LOOK_RADIUS = 120.0

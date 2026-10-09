@@ -31,11 +31,12 @@ import flight
 # A clear high-desert sky: deep blue overhead, paling toward the skyline.
 ZENITH = np.array([46, 104, 178]) / 255.0
 HORIZON = np.array([196, 214, 230]) / 255.0
-WARM = np.array([0.07, 0.025, -0.04])       # late-afternoon highlights...
-COOL = np.array([-0.05, 0.0, 0.06])        # ...and blue shadows
-CONTRAST = 1.08
+WARM = np.array([0.11, 0.045, -0.05])       # late-afternoon highlights...
+COOL = np.array([-0.015, 0.0, 0.02])       # ...and only a breath of blue in the shade
+CONTRAST = 1.20
+LEVELS = (0.05, 0.97)                      # black and white points: the raw frames are flat and pale
 SKYLINE_HAZE = 0.20                      # pale haze on the ground just under the skyline
-SATURATE = 1.10                          # the aerial photo needs only a little lift after lighting
+SATURATE = 1.30                          # late-summer sage and granite are pale in the photo
 # Terrain shadows come from sun_visibility (traced through the heightfield), not a shadow
 # map: over a 100 km scene the shadow map's texels are tens of metres and leave blocky
 # grey patches on flat ground like the lakes.
@@ -53,8 +54,8 @@ HAZE = {"enabled": True, "mode": "height", "density": 0.004, "height_falloff": 0
 # A gentle sun and a strong sky light. forge3d's sun adds a specular sheen that doesn't depend
 # on the ground's colour, so at full strength it turns dark forest and deep lakes pale grey
 # wherever the ground faces the light; the sky light only scales the imagery's own colours.
-SUN_INTENSITY = 0.5
-TERRAIN = {"zscale": 1.0, "ambient": 0.5}      # the stretch is already in the DEM
+SUN_INTENSITY = 0.7
+TERRAIN = {"zscale": 1.0, "ambient": 0.38}     # true scale; less sky fill so the shade has depth
 LABEL_RGB = (253, 250, 244)
 LABEL_HALO = (28, 26, 22)
 LABEL_MAX_KM = 9.0                      # places further than this aren't named
@@ -160,6 +161,7 @@ def finish(png: Path, eye=None, aim=None, fov: float = 50.0, ground: float = 0.0
     hi = np.clip((lum - 0.2) / 0.6, 0, 1)[..., None]
     hi = hi * hi * (3 - 2 * hi)
     x = x * (1 + hi * WARM) * (1 + (1 - hi) * COOL)
+    x = np.clip((x - LEVELS[0]) / (LEVELS[1] - LEVELS[0]), 0, 1)
     x = np.clip((x - 0.5) * CONTRAST + 0.5, 0, 1)
     gray = (x @ np.array([0.2126, 0.7152, 0.0722]))[..., None]
     x = np.clip(gray + (x - gray) * SATURATE, 0, 1)
@@ -194,7 +196,7 @@ def font(size: int):
 
 
 class Towns:
-    """Names the bivouac towns on each frame, at the dot drawn on the ground."""
+    """Names the places on each frame, when they're in sight (not behind a ridge)."""
 
     def __init__(self, dem: np.ndarray, w: int, h: int):
         import route
@@ -202,11 +204,20 @@ class Towns:
         x, y = flight.to_utm([route.TOWNS[n][0] for n in names], [route.TOWNS[n][1] for n in names])
         z = flight.sample(dem, x, y)
         self.pts = np.column_stack([x, y, z])
+        self.dem = dem
         self.text = [route.TOWNS[n][2] for n in names]
         self.w, self.h = w, h
         self.font = font(max(12, round(h / 38)))
         self.small = font(max(10, round(h / 60)))
         self.big = font(max(20, round(h / 11)))
+
+    def in_sight(self, eye, pt) -> float:
+        """1 when the line from the eye to the place clears the ground by 20 m or more,
+        0 when the ground stands 10 m or more above it, smooth in between (no flicker)."""
+        s = np.linspace(0.03, 0.95, 120)[:, None]
+        line = eye[None] + (pt + [0, 0, 15] - eye)[None] * s
+        gap = line[:, 2] - flight.sample(self.dem, line[:, 0], line[:, 1])
+        return float(np.clip((gap.min() + 10) / 30, 0, 1))
 
     def draw(self, rgb: np.ndarray, eye, aim, fov, t: float) -> np.ndarray:
         from PIL import ImageDraw
@@ -214,11 +225,12 @@ class Towns:
         d = ImageDraw.Draw(img)
         px, py, dist = flight.project(self.pts, eye, aim, fov, self.w, self.h)
         stroke = max(2, self.h // 360)
-        for x, y, km, text in sorted(zip(px, py, dist / 1000, self.text), key=lambda v: -v[2]):
+        for x, y, km, text, pt in sorted(zip(px, py, dist / 1000, self.text, self.pts), key=lambda v: -v[2]):
             if not np.isfinite(x) or km > LABEL_MAX_KM or not (0 <= x < self.w and 0 <= y < self.h):
                 continue
-            # names come in as the title goes out, and fade with distance
-            fade = float(np.clip((LABEL_MAX_KM - km) / LABEL_FADE_KM, 0, 1) * np.clip((t - TITLE_S + 1.5) / 1.5, 0, 1))
+            # names come in as the title goes out, fade with distance, and fade out behind ridges
+            fade = float(np.clip((LABEL_MAX_KM - km) / LABEL_FADE_KM, 0, 1) * np.clip((t - TITLE_S + 1.5) / 1.5, 0, 1)
+                         * self.in_sight(eye, pt))
             if fade <= 0.05:
                 continue
             col = tuple(int(c * fade + l * (1 - fade)) for c, l in zip(LABEL_RGB, rgb[int(y), int(x)]))
